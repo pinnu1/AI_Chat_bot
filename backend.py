@@ -20,6 +20,7 @@ load_dotenv()
 llm=ChatGoogleGenerativeAI(model="gemini-1.5-flash", temperature=0.2)
 
 #tool to search the web pages 
+
 search_tool=DuckDuckGoSearchRun(region="us-en")
 
 
@@ -67,12 +68,22 @@ llm_with_tools=llm.bind_tools(tools)
 #--------------
 
 class ChatState(TypedDict):
+    #add_messages is same as operator add to add the diffrent message in the list so that previous message will not be lost
     messages:Annotated[list[BaseMessage],add_messages]
-    
+
+#-------------
+#chat node function how chatting will happen 
+#-----------
+
 def chat_node(state:ChatState):
     messages=state["messages"]
     response=llm_with_tools.invoke(messages)
     return {"messages":[response]}
+
+#-----------------
+#tool node langgraph prebuilt node to handle the tools
+#-----------------
+
 
 tool_node=ToolNode(tools)
 
@@ -83,8 +94,6 @@ tool_node=ToolNode(tools)
 
 conn = sqlite3.connect('chat_history.db',check_same_thread=False)
 checkpointer = SqliteSaver(conn=conn)
-
-
 #---------------
 #graph
 #---------------
